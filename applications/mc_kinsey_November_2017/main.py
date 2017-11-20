@@ -1,14 +1,15 @@
 import datetime
 import random
 from sklearn.decomposition import PCA
-from MLP import MLP
-from holt_winters import linear
-from read_data import read_data
-from read_test import read_test_data
+
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import matplotlib.pylab as plt
+
+from algorithms.MLP import MLP
+from applications.mc_kinsey_November_2017.read_data import read_data
+from applications.mc_kinsey_November_2017.read_test import read_test_data
 
 
 def extract_features_and_label_test(data):
