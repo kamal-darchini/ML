@@ -6,3 +6,6 @@ Assumes mean of samples from a distribution is Normally distributed around the m
 
 **Welch's t-test:**
 Same as Student t-test but in calculating variance it sums up biased variance f samples in the denumerator (t-test uses pooled variance). The rest is the same as Student t-test.
+
+**Z-test:**
+T-test with the assumption that original random variable had Gaussian distribution + variance of the distribution is given.
