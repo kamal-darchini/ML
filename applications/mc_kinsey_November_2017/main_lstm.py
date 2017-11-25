@@ -8,7 +8,7 @@ from pandas import DataFrame
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-from algorithms.lstm import LSTM
+from algorithms.LSTM import LSTM
 from applications.mc_kinsey_November_2017.read_data import read_data
 from applications.mc_kinsey_November_2017.read_test import read_test_data
 
