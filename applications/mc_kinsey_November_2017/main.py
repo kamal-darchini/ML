@@ -144,7 +144,7 @@ def split(features, labels, validation_ratio):
 
 if __name__ == '__main__':
 
-    data_1, data_2, data_3, data_4, moving_avg, std, moving_avg_1 = read_data('/Users/kamaloddindarchinimaragheh/Desktop/mk_kinsey/mc_kinsey_data.txt')
+    data_1, data_2, data_3, data_4, moving_avg, std = read_data('/Users/kamaloddindarchinimaragheh/Desktop/mk_kinsey/mc_kinsey_data.txt')
 
     features_1, labels_1 = extract_features_and_label(data_1)
     features_2, labels_2 = extract_features_and_label(data_2)
