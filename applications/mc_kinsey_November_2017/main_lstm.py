@@ -1,56 +1,12 @@
-import datetime
-import random
-
-from pandas import concat, Series
-from sklearn.decomposition import PCA
-from pandas import DataFrame
-
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
+from matplotlib import pyplot as plt
 
-from algorithms.LSTM import LSTM
+from algorithms.LSTM_keras import LSTM_keras
+from utils.scale import scale, invert_scale
+from utils.split import split
 from applications.mc_kinsey_November_2017.read_data import read_data
-from applications.mc_kinsey_November_2017.read_test import read_test_data
-
-
-def split(features, labels, validation_ratio):
-
-    number_features = features.shape[0]
-    train_features = []
-    train_labels = []
-    valid_features = []
-    valid_labels = []
-    for i in range(number_features):
-        if random.random() >= validation_ratio:
-            train_features.append(features[i])
-            train_labels.append(labels[i])
-        else:
-            valid_features.append(features[i])
-            valid_labels.append(labels[i])
-
-    return np.array(train_features), np.array(train_labels), np.array(valid_features), np.array(valid_labels)
-
-
-def timeseries_to_supervised(data, lag=1):
-    df = DataFrame(data)
-    columns = [df.shift(i) for i in range(1, lag + 1)]
-    columns.append(df)
-    df = concat(columns, axis=1)
-    df.fillna(0, inplace=True)
-    return df
-
-
-def difference(dataset, interval=1):
-    diff = list()
-    for i in range(interval, len(dataset)):
-        value = dataset[i] - dataset[i - interval]
-        diff.append(value)
-    return Series(diff)
-
-
-def inverse_difference(history, yhat, interval=1):
-    return yhat + history[-interval]
-
+from utils.timeseries_to_supervised import inverse_difference, timeseries_to_normalized_supervised
 
 if __name__ == '__main__':
 
@@ -60,28 +16,39 @@ if __name__ == '__main__':
     data_3 = [float(x['vehicles']) for x in data_3]
     data_4 = [float(x['vehicles']) for x in data_4]
 
-    supervised = timeseries_to_supervised(data_1, 1)
-    print(supervised.head())
+    train_data, _, test_data, _ = split(np.array(data_1), None, validation_ratio=.3)
 
-    # transform to be stationary
-    differenced = difference(data_1, 1)
-    print(differenced.head())
-    # invert transform
-    inverted = list()
-    for i in range(len(differenced)):
-        value = inverse_difference(data_1, differenced[i], len(data_1) - i)
-        inverted.append(value)
-    inverted = Series(inverted)
-    print(inverted.head())
+    # transform to be stationary and supervised learning
+    train = timeseries_to_normalized_supervised(data=train_data, difference_interval=1, history=5).values
+    test = timeseries_to_normalized_supervised(data=test_data, difference_interval=1, history=5).values
 
-    # tranform scale
-    X = np.array(data_1).reshape(len(data_1), 1)
-    scaler = MinMaxScaler(feature_range=(-1, 1))
-    scaler = scaler.fit(X)
-    scaled_X = scaler.transform(X)
+    scaler, train_scaled, test_scaled = scale(train, test)
 
-    # inverse transform
-    inverted_X = scaler.inverse_transform(scaled_X)
-    inverted_series = Series(inverted_X[:, 0])
-    print(inverted_series.head())
+    # train model
+    lstm = LSTM_keras(n_epochs=10,
+                      n_units=2,
+                      batch_size=1)
+    lstm.fit(train_scaled)
 
+    # walk-forward validation on the test data
+    predictions = list()
+    for i in range(len(test_scaled)):
+        # make one-step forecast
+        X, y = test_scaled[i, 0:-1], test_scaled[i, -1]
+        yhat = lstm.predict(X.reshape(1, 1, len(X)), 1)
+        # invert scaling
+        yhat = invert_scale(scaler, X, yhat)
+        # invert differencing
+        yhat = inverse_difference(test_data, yhat, len(test_scaled) + 1 - i)
+        # store forecast
+        predictions.append(yhat)
+        expected = test_data[i]
+        # print('Predicted=%f, Expected=%f' % (yhat, expected))
+
+    # report performance
+    rmse = np.sqrt(mean_squared_error(test_data[1:], predictions))
+    print('Test RMSE: %.3f' % rmse)
+    # line plot of observed vs predicted
+    plt.plot(test_data, 'b')
+    plt.plot(predictions, 'r')
+    plt.show()
