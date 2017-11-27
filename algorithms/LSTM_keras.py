@@ -31,7 +31,7 @@ class LSTM_keras:
         self.model.add(Dense(5))
         self.model.add(Dense(1))
         self.model.compile(loss='mean_squared_error', optimizer='adam')
-        self.model.fit(X, y, epochs=self.n_epochs, batch_size=self.batch_size, verbose=2, shuffle=False)
+        self.model.fit(X, y, epochs=self.n_epochs, batch_size=self.batch_size, verbose=2, shuffle=True)
         # self.model.reset_states()
 
     def predict(self, data, batch_size):

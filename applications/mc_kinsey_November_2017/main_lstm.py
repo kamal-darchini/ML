@@ -19,14 +19,14 @@ if __name__ == '__main__':
     train_data, _, test_data, _ = split(np.array(data_1), None, validation_ratio=.3)
 
     # transform to be stationary and supervised learning
-    train = timeseries_to_normalized_supervised(data=train_data, difference_interval=1, history=5).values
-    test = timeseries_to_normalized_supervised(data=test_data, difference_interval=1, history=5).values
+    train = timeseries_to_normalized_supervised(data=train_data, difference_interval=1, history=1).values
+    test = timeseries_to_normalized_supervised(data=test_data, difference_interval=1, history=1).values
 
     scaler, train_scaled, test_scaled = scale(train, test)
 
     # train model
     lstm = LSTM_keras(n_epochs=10,
-                      n_units=2,
+                      n_units=14,
                       batch_size=1)
     lstm.fit(train_scaled)
 
