@@ -25,10 +25,13 @@ if __name__ == '__main__':
     scaler, train_scaled, test_scaled = scale(train, test)
 
     # train model
-    lstm = LSTM_keras(n_epochs=10,
-                      n_units=14,
-                      batch_size=1)
-    lstm.fit(train_scaled)
+    lstm = LSTM_keras(n_epochs=1,
+                      n_units=5,
+                      batch_size=1,
+                      n_lstm_layers=1,
+                      input_length=train_scaled.shape[1] - 1)
+
+    lstm.fit(train_scaled[:, :-1], train_scaled[:, -1])
 
     # walk-forward validation on the test data
     predictions = list()
