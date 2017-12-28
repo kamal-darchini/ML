@@ -15,7 +15,7 @@ def scale(train, test=None):
     try:
         test = test.reshape(test.shape[0], test.shape[1])
         test_scaled = scaler.transform(test)
-    except TypeError:
+    except (TypeError, AttributeError):
         test_scaled = None
     return scaler, train_scaled, test_scaled
 

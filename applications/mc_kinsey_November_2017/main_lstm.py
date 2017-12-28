@@ -10,13 +10,17 @@ from utils.timeseries_to_supervised import inverse_difference, timeseries_to_nor
 
 if __name__ == '__main__':
 
-    data_1, data_2, data_3, data_4, moving_avg, std = read_data('/Users/kamaloddindarchinimaragheh/Desktop/mk_kinsey/mc_kinsey_data.txt')
-    data_1 = [float(x['vehicles']) for x in data_1]
+    data_1, data_2, data_3, data_4, moving_avg, std = read_data('/Users/kamaloddindarchinimaragheh/git/ML/data/time_series/junctions_traffic/train_data.txt')
+    data_1 = np.array([float(x['vehicles']) for x in data_1])
     data_2 = [float(x['vehicles']) for x in data_2]
     data_3 = [float(x['vehicles']) for x in data_3]
     data_4 = [float(x['vehicles']) for x in data_4]
 
-    train_data, _, test_data, _ = split(np.array(data_1), None, validation_ratio=.3)
+    # train_data, _, test_data, _ = split(np.array(data_1), None, validation_ratio=.3)
+    data = data_4
+    split_row = int(.7 * len(data))
+    train_data = data[:split_row]
+    test_data = data[split_row:]
 
     # transform to be stationary and supervised learning
     train = timeseries_to_normalized_supervised(data=train_data, difference_interval=1, history=1).values
@@ -25,10 +29,9 @@ if __name__ == '__main__':
     scaler, train_scaled, test_scaled = scale(train, test)
 
     # train model
-    lstm = LSTM_keras(n_epochs=1,
-                      n_units=5,
+    lstm = LSTM_keras(n_epochs=10,
+                      n_units=[10, 5],
                       batch_size=1,
-                      n_lstm_layers=1,
                       input_length=train_scaled.shape[1] - 1)
 
     lstm.fit(train_scaled[:, :-1], train_scaled[:, -1])
